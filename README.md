@@ -1,4 +1,4 @@
-# 🌱 FarmDesk
+# FarmDesk
 
 A mobile-first, full-stack agricultural data entry application designed specifically for large-scale farm management. It tracks plant health, fertilizer usage, and disease distribution using a sleek dark-mode compatible UI and robust analytics.
 

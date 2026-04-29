@@ -34,11 +34,11 @@
             };
             
             // Chart 1: Bar chart
-            Plotly.newPlot('plot1', [data.chart1], layoutConfig, {responsive: true});
+            Plotly.newPlot('plot1', [data.chart1], layoutConfig, {responsive: true, displayModeBar: false});
             // Chart 2: Line chart
-            Plotly.newPlot('plot2', data.chart2, layoutConfig, {responsive: true});
+            Plotly.newPlot('plot2', data.chart2, layoutConfig, {responsive: true, displayModeBar: false});
             // Chart 3: Line chart
-            Plotly.newPlot('plot3', data.chart3, layoutConfig, {responsive: true});
+            Plotly.newPlot('plot3', data.chart3, layoutConfig, {responsive: true, displayModeBar: false});
             
             // Handle dark mode toggle for charts
             const observer = new MutationObserver(() => {
