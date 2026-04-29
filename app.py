@@ -125,30 +125,53 @@ def api_analytics():
     try:
         supabase = get_supabase()
         # Chart 1: Average height per plot
-        # Simplified since we're generating this dynamically
-        # Get all recent surveys with plant data
-        surveys_resp = supabase.table('survey_entries').select('height_ft, height_in, plants(plot_id)').execute()
-        
+        # Fetch all surveys (paginating because Supabase defaults to 1000 records)
+        all_surveys = []
+        for i in range(15): # Fetch up to 15,000 records
+            resp = supabase.table('survey_entries').select('survey_date, height_ft, height_in, plants(plot_id)').range(i*1000, (i+1)*1000 - 1).execute()
+            all_surveys.extend(resp.data)
+            if len(resp.data) < 1000:
+                break
+                
         plot_heights = {}
-        for s in surveys_resp.data:
+        plot_time_heights = {}
+        farm_time_heights = {}
+        
+        for s in all_surveys:
             if s.get('height_ft') is not None and s.get('plants'):
                 plot_id = f"Plot {s['plants']['plot_id']}"
                 total_inches = (s['height_ft'] * 12) + (s['height_in'] or 0)
+                
+                # Aggregate for Chart 1
                 if plot_id not in plot_heights:
                     plot_heights[plot_id] = []
                 plot_heights[plot_id].append(total_inches)
+                
+                # Aggregate for Chart 3
+                date_str = s.get('survey_date')
+                if date_str:
+                    month = date_str[:7] # Group by YYYY-MM
+                    
+                    if plot_id not in plot_time_heights:
+                        plot_time_heights[plot_id] = {}
+                    if month not in plot_time_heights[plot_id]:
+                        plot_time_heights[plot_id][month] = []
+                    plot_time_heights[plot_id][month].append(total_inches)
+                    
+                    if month not in farm_time_heights:
+                        farm_time_heights[month] = []
+                    farm_time_heights[month].append(total_inches)
         
-        avg_heights = {k: sum(v)/len(v)/12 for k, v in plot_heights.items()} # Convert avg inches back to ft
+        # Calculate averages for Chart 1
+        avg_heights = {k: sum(v)/len(v)/12 for k, v in plot_heights.items()}
+        sorted_plots = sorted(avg_heights.keys(), key=lambda x: int(x.split(' ')[1]) if len(x.split(' ')) > 1 else x)
         
         chart1 = {
-            'x': list(avg_heights.keys()),
-            'y': list(avg_heights.values()),
+            'x': sorted_plots,
+            'y': [avg_heights[p] for p in sorted_plots],
             'type': 'bar',
             'marker': {'color': '#22c55e'}
         }
-        
-        # For simplicity, returning mock structures for chart 2 & 3 based on random trends to fulfill requirements
-        # since complex aggregate queries require RPCs in Supabase or huge memory footprint in python
         
         # Chart 2: Disease Distribution (Pie Chart)
         disease_resp = supabase.table('survey_entries').select('disease_tags').execute()
@@ -163,7 +186,6 @@ def api_analytics():
         values = list(disease_counts.values())
         
         if not labels:
-            # Fallback if no diseases logged yet
             labels = ['Healthy', 'Diseased']
             values = [100, 0]
             
@@ -175,11 +197,38 @@ def api_analytics():
             'marker': {'colors': ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6']}
         }]
         
-        chart3 = [
-            {'x': ['Jan', 'Feb', 'Mar'], 'y': [2.0, 2.5, 3.0], 'type': 'scatter', 'mode': 'lines', 'name': 'Plot 1'},
-            {'x': ['Jan', 'Feb', 'Mar'], 'y': [1.8, 2.2, 2.7], 'type': 'scatter', 'mode': 'lines', 'name': 'Plot 2'},
-            {'x': ['Jan', 'Feb', 'Mar'], 'y': [1.9, 2.35, 2.85], 'type': 'scatter', 'mode': 'lines', 'name': 'Farm Avg', 'line': {'color': '#111827', 'width': 3}}
-        ]
+        # Chart 3: Plot Averages vs Farm-wide
+        chart3 = []
+        if farm_time_heights:
+            months = sorted(farm_time_heights.keys())
+            
+            for plot_id in sorted_plots:
+                if plot_id in plot_time_heights:
+                    y_vals = []
+                    for m in months:
+                        if m in plot_time_heights[plot_id]:
+                            vals = plot_time_heights[plot_id][m]
+                            y_vals.append(sum(vals)/len(vals)/12)
+                        else:
+                            y_vals.append(None)
+                    
+                    chart3.append({
+                        'x': months,
+                        'y': y_vals,
+                        'type': 'scatter',
+                        'mode': 'lines+markers',
+                        'name': plot_id
+                    })
+                    
+            farm_y = [sum(farm_time_heights[m])/len(farm_time_heights[m])/12 for m in months]
+            chart3.append({
+                'x': months,
+                'y': farm_y,
+                'type': 'scatter',
+                'mode': 'lines+markers',
+                'name': 'Farm Avg',
+                'line': {'color': '#111827', 'width': 3}
+            })
         
         return {'chart1': chart1, 'chart2': chart2, 'chart3': chart3}
     except Exception as e:

@@ -10,8 +10,8 @@ def seed_surveys():
     supabase = get_supabase()
     
     print("Fetching plants...")
-    # Get some plants to attach surveys to (max 100 to avoid huge inserts)
-    response = supabase.table('plants').select('id, plot_id').limit(100).execute()
+    # Get all plants from the first 4 plots (4 * 900 = 3600 plants)
+    response = supabase.table('plants').select('id, plot_id').in_('plot_id', [1, 2, 3, 4]).execute()
     plants = response.data
     
     if not plants:
@@ -28,8 +28,13 @@ def seed_surveys():
         # Each plant gets 3 entries over 3 months
         for m in range(3):
             survey_date = (base_date + timedelta(days=m*30)).strftime('%Y-%m-%d')
-            # Base height starts small, grows over time
-            height_in_inches = 10 + (m * 5) + random.randint(0, 10)
+            # Add variation so different plots have distinctly different average heights
+            plot_num = int(plant['plot_id'])
+            # Plot 1 starts small and grows slow, Plot 4 starts high and grows fast
+            base_height = 10 + (plot_num * 6)
+            growth_rate = 5 + (plot_num * 3)
+            
+            height_in_inches = base_height + (m * growth_rate) + random.randint(0, 5)
             
             entries.append({
                 'plant_id': plant['id'],
