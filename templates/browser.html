@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors duration-200">
+    <h2 class="text-2xl font-bold mb-4 text-farm-900 dark:text-farm-100">Plant Browser</h2>
+    
+    <div class="mb-6">
+        <input type="text" hx-get="/plants/search" hx-target="#plant-results" hx-trigger="keyup changed delay:500ms, search" 
+               name="q" placeholder="Search by Plant ID (e.g. P1-R1-C1-A)..." 
+               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 outline-none">
+    </div>
+    
+    <div id="plant-results">
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center">Start typing to search (e.g., P1)...</p>
+    </div>
+</div>
+{% endblock %}

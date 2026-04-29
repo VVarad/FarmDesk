@@ -1,0 +1,45 @@
+{% if plants %}
+<div class="space-y-4">
+    {% for plant in plants %}
+    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="font-bold text-lg dark:text-white">{{ plant.id }}</h3>
+            <span class="bg-farm-100 text-farm-900 text-xs px-2 py-1 rounded">Plot {{ plant.plot_id }}</span>
+        </div>
+        
+        {% if plant.survey_entries %}
+        <div class="space-y-3 mt-4 border-l-2 border-farm-200 dark:border-farm-900 pl-4">
+            {% for entry in plant.survey_entries %}
+            <div class="relative">
+                <div class="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-farm-500"></div>
+                <div class="text-sm font-semibold text-gray-600 dark:text-gray-300">{{ entry.survey_date }}</div>
+                <div class="text-sm dark:text-gray-400">
+                    {% if entry.height_ft is not none %}
+                    Height: {{ entry.height_ft }}' {{ entry.height_in|default('0') }}" <br>
+                    {% endif %}
+                    {% if entry.fertilizer_qty %}
+                    Fertilizer: {{ entry.fertilizer_qty }}kg {{ entry.fertilizer_type }} <br>
+                    {% endif %}
+                    {% if entry.disease_tags %}
+                    Tags: 
+                    {% for tag in entry.disease_tags %}
+                    <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded mr-1">{{ tag }}</span>
+                    {% endfor %}
+                    <br>
+                    {% endif %}
+                    {% if entry.notes %}
+                    Notes: <span class="italic">{{ entry.notes }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-500 dark:text-gray-400">No survey data yet.</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-sm text-red-500 text-center">No plants found.</p>
+{% endif %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<div class="space-y-6">
+    <h2 class="text-2xl font-bold text-farm-900 dark:text-farm-100">Farm Analytics</h2>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 transition-colors duration-200">
+        <h3 class="text-lg font-semibold mb-2 dark:text-gray-200">Plot-wise Average Height</h3>
+        <div id="plot1"></div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 transition-colors duration-200">
+        <h3 class="text-lg font-semibold mb-2 dark:text-gray-200">Disease Distribution</h3>
+        <div id="plot2"></div>
+    </div>
+    
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 transition-colors duration-200">
+        <h3 class="text-lg font-semibold mb-2 dark:text-gray-200">Plot Averages vs Farm-wide (Over Time)</h3>
+        <div id="plot3"></div>
+    </div>
+</div>
+
+<script>
+    // Fetch data and render charts
+    fetch('/api/analytics')
+        .then(response => response.json())
+        .then(data => {
+            const layoutConfig = {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                font: { color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827' },
+                margin: { t: 10, l: 30, r: 10, b: 30 },
+                autosize: true
+            };
+            
+            // Chart 1: Bar chart
+            Plotly.newPlot('plot1', [data.chart1], layoutConfig, {responsive: true});
+            // Chart 2: Line chart
+            Plotly.newPlot('plot2', data.chart2, layoutConfig, {responsive: true});
+            // Chart 3: Line chart
+            Plotly.newPlot('plot3', data.chart3, layoutConfig, {responsive: true});
+            
+            // Handle dark mode toggle for charts
+            const observer = new MutationObserver(() => {
+                const color = document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#111827';
+                const update = { 'font.color': color };
+                Plotly.relayout('plot1', update);
+                Plotly.relayout('plot2', update);
+                Plotly.relayout('plot3', update);
+            });
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        });
+</script>
+{% endblock %}

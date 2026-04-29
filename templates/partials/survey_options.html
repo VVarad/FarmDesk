@@ -1,0 +1,20 @@
+{% if type == 'row' %}
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Row</label>
+<select name="row_num" hx-get="/survey/options?type=col&plot_id={{ plot_id }}" hx-target="#col_wrapper" required
+        class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 focus:ring-farm-500 outline-none">
+    <option value="">Select Row</option>
+    {% for row in rows %}
+    <option value="{{ row }}">{{ row }}</option>
+    {% endfor %}
+</select>
+
+{% elif type == 'col' %}
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Column</label>
+<select name="col_num" required
+        class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 focus:ring-farm-500 outline-none">
+    <option value="">Select Column</option>
+    {% for col in cols %}
+    <option value="{{ col }}">{{ col }}</option>
+    {% endfor %}
+</select>
+{% endif %}

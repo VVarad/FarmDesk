@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 transition-colors duration-200">
+    <h2 class="text-2xl font-bold mb-4 text-farm-900 dark:text-farm-100">Survey Data Entry</h2>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-200 dark:border-gray-700 mb-6">
+        <button onclick="switchTab('bulk')" id="tab-bulk" class="flex-1 py-3 text-center font-semibold text-farm-600 border-b-2 border-farm-600">Bulk Row Entry</button>
+        <button onclick="switchTab('single')" id="tab-single" class="flex-1 py-3 text-center font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Single Plant Entry</button>
+    </div>
+
+    <div id="survey-messages"></div>
+
+    <!-- Bulk Form -->
+    <form id="form-bulk" hx-post="/survey/bulk" hx-target="#survey-messages" hx-swap="innerHTML" class="space-y-4 block">
+        <!-- Plot Selection -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Plot</label>
+            <select name="plot_id" hx-get="/survey/options?type=row" hx-target="#row_wrapper_bulk" required
+                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 focus:ring-farm-500 outline-none">
+                <option value="">Select Plot</option>
+                {% for plot in plots %}
+                <option value="{{ plot.id }}">{{ plot.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Row Selection -->
+        <div id="row_wrapper_bulk">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Row</label>
+            <select name="row_num" disabled
+                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border outline-none opacity-50 cursor-not-allowed">
+                <option value="">Select Plot First</option>
+            </select>
+        </div>
+
+        <hr class="my-4 border-gray-200 dark:border-gray-700">
+
+        <!-- Measurements -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Height (ft)</label>
+                <input type="number" name="height_ft" min="0" step="1"
+                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Height (in)</label>
+                <input type="number" name="height_in" min="0" max="11" step="1"
+                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 outline-none">
+            </div>
+        </div>
+
+        <!-- Fertilizer -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fertilizer (kg)</label>
+                <input type="number" name="fertilizer_qty" min="0" step="0.1"
+                       class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                <select name="fertilizer_type"
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 outline-none">
+                    <option value="">None</option>
+                    <option value="NPK">NPK</option>
+                    <option value="Urea">Urea</option>
+                    <option value="Compost">Compost</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="bg-yellow-50 text-yellow-800 p-3 rounded text-sm mt-2 border border-yellow-200">
+            <strong>Warning:</strong> This will log identical height and fertilizer entries for all 60 plants in this row.
+        </div>
+
+        <button type="submit" class="w-full bg-farm-600 hover:bg-farm-500 text-white p-4 rounded-lg font-bold shadow-md active:scale-95 transition-transform">
+            Save Row Entries
+        </button>
+    </form>
+
+    <!-- Single Form -->
+    <form id="form-single" hx-post="/survey/single" hx-target="#survey-messages" hx-swap="innerHTML" class="space-y-4 hidden">
+        <!-- Plot Selection -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Plot</label>
+            <select name="plot_id" hx-get="/survey/options?type=row" hx-target="#row_wrapper_single" required
+                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 focus:ring-farm-500 outline-none">
+                <option value="">Select Plot</option>
+                {% for plot in plots %}
+                <option value="{{ plot.id }}">{{ plot.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Row Selection -->
+        <div id="row_wrapper_single">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Row</label>
+            <select name="row_num" disabled
+                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border outline-none opacity-50 cursor-not-allowed">
+                <option value="">Select Plot First</option>
+            </select>
+        </div>
+
+        <!-- Column Selection -->
+        <div id="col_wrapper">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Column</label>
+            <select name="col_num" disabled
+                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border outline-none opacity-50 cursor-not-allowed">
+                <option value="">Select Row First</option>
+            </select>
+        </div>
+
+        <!-- Vine Selection -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vine (A/B/C)</label>
+            <div class="flex gap-2">
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="vine_type" value="A" class="peer sr-only" required>
+                    <div class="text-center p-3 rounded-lg border border-gray-300 dark:border-gray-600 peer-checked:bg-farm-600 peer-checked:text-white peer-checked:border-farm-600 dark:text-white transition-colors">A</div>
+                </label>
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="vine_type" value="B" class="peer sr-only">
+                    <div class="text-center p-3 rounded-lg border border-gray-300 dark:border-gray-600 peer-checked:bg-farm-600 peer-checked:text-white peer-checked:border-farm-600 dark:text-white transition-colors">B</div>
+                </label>
+                <label class="flex-1 cursor-pointer">
+                    <input type="radio" name="vine_type" value="C" class="peer sr-only">
+                    <div class="text-center p-3 rounded-lg border border-gray-300 dark:border-gray-600 peer-checked:bg-farm-600 peer-checked:text-white peer-checked:border-farm-600 dark:text-white transition-colors">C</div>
+                </label>
+            </div>
+        </div>
+
+        <hr class="my-4 border-gray-200 dark:border-gray-700">
+
+        <!-- Disease Tags -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Disease Tags</label>
+            <div class="flex flex-wrap gap-2">
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="disease_tags" value="Leaf Spot" class="peer sr-only">
+                    <div class="px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-gray-600 peer-checked:bg-red-500 peer-checked:text-white dark:text-gray-300 transition-colors">Leaf Spot</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="disease_tags" value="Root Rot" class="peer sr-only">
+                    <div class="px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-gray-600 peer-checked:bg-red-500 peer-checked:text-white dark:text-gray-300 transition-colors">Root Rot</div>
+                </label>
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="disease_tags" value="Pests" class="peer sr-only">
+                    <div class="px-3 py-1 rounded-full text-sm border border-gray-300 dark:border-gray-600 peer-checked:bg-red-500 peer-checked:text-white dark:text-gray-300 transition-colors">Pests</div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+            <textarea name="notes" rows="2" placeholder="Record anomalies or specific notes..."
+                      class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white p-3 border focus:border-farm-500 outline-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-4 rounded-lg font-bold shadow-md active:scale-95 transition-transform">
+            Save Plant Note
+        </button>
+    </form>
+</div>
+
+<script>
+    function switchTab(tab) {
+        const bulkBtn = document.getElementById('tab-bulk');
+        const singleBtn = document.getElementById('tab-single');
+        const bulkForm = document.getElementById('form-bulk');
+        const singleForm = document.getElementById('form-single');
+        
+        if (tab === 'bulk') {
+            bulkForm.classList.remove('hidden');
+            singleForm.classList.add('hidden');
+            
+            bulkBtn.classList.add('text-farm-600', 'border-b-2', 'border-farm-600');
+            bulkBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+            
+            singleBtn.classList.remove('text-farm-600', 'border-b-2', 'border-farm-600');
+            singleBtn.classList.add('text-gray-500', 'dark:text-gray-400');
+        } else {
+            singleForm.classList.remove('hidden');
+            bulkForm.classList.add('hidden');
+            
+            singleBtn.classList.add('text-farm-600', 'border-b-2', 'border-farm-600');
+            singleBtn.classList.remove('text-gray-500', 'dark:text-gray-400');
+            
+            bulkBtn.classList.remove('text-farm-600', 'border-b-2', 'border-farm-600');
+            bulkBtn.classList.add('text-gray-500', 'dark:text-gray-400');
+        }
+        
+        document.getElementById('survey-messages').innerHTML = '';
+    }
+</script>
+{% endblock %}

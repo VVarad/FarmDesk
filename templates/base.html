@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FarmDesk</title>
+    <!-- PWA -->
+    <meta name="theme-color" content="#16a34a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        farm: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+            } else {
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js').catch(err => {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+    <style>
+        /* Mobile first adjustments */
+        body { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-200">
+    <!-- Navbar -->
+    <nav class="bg-farm-600 text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto p-4 flex flex-wrap justify-between items-center max-w-lg">
+            <div class="text-xl font-bold tracking-wider mb-2 w-full flex justify-between">
+                <span>🌱 FarmDesk</span>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full hover:bg-farm-500 transition-colors">
+                    🌓
+                </button>
+            </div>
+            <div class="flex space-x-4 text-sm font-medium w-full justify-around bg-farm-900 bg-opacity-20 p-2 rounded-lg">
+                <a href="/survey" class="hover:text-farm-100 transition-colors">Survey</a>
+                <a href="/plants" class="hover:text-farm-100 transition-colors">Browser</a>
+                <a href="/analytics" class="hover:text-farm-100 transition-colors">Analytics</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container mx-auto p-4 max-w-lg">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
